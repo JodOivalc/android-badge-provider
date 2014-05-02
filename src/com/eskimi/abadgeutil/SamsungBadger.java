@@ -2,10 +2,15 @@ package com.eskimi.abadgeutil;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.util.Log;
 
 public class SamsungBadger extends ABadgerProvider {
+    private static final String PERMISSION_WRITE = "com.sec.android.provider.badge.permission.WRITE";
+    private static final String PERMISSION_READ = "com.sec.android.provider.badge.permission.READ";
+
     private static final Uri CONTENT_URI = Uri.parse("content://com.sec.badge/apps");
     private static final String COLUMN_PACKAGE = "package";
     private static final String COLUMN_CLASS = "class";
@@ -53,6 +58,18 @@ public class SamsungBadger extends ABadgerProvider {
     }
 
     static boolean isAvailable(Context context) {
+        PackageManager pm = context.getPackageManager();
+
+        if (pm.checkPermission(PERMISSION_WRITE, context.getPackageName()) != PackageManager.PERMISSION_GRANTED) {
+            Log.d(TAG, String.format("You don't have %s permission", PERMISSION_WRITE));
+            return false;
+        }
+
+        if (pm.checkPermission(PERMISSION_READ, context.getPackageName()) != PackageManager.PERMISSION_GRANTED) {
+            Log.d(TAG, String.format("You don't have %s permission", PERMISSION_READ));
+            return false;
+        }
+
         return context.getContentResolver().query(CONTENT_URI, null, null, null, null) != null;
     }
 }
